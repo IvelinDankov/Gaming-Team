@@ -14,24 +14,29 @@
         <img src="/images/logo.jpg" class="logo" />
         <ul>
           <li><a href="/">Home</a></li>
-          <li><a href="#">All Games Code</a></li>
+          <li><a href="/games/catalog">All Games Code</a></li>
           <li><a href="#">Search</a></li>
           {{#if isAuthenticated}}
-          {{!-- user --}}
-          <li><a href="#">Create Game Offer</a></li>
-          <li><a href="/auth/logout">Logout</a></li>
+            {{! user }}
+            <li><a href="/games/create">Create Game Offer</a></li>
+            <li><a href="/auth/logout">Logout</a></li>
           {{else}}
-          {{!-- guest --}}
-          <li><a href="/auth/login">Login</a></li>
-          <li><a href="/auth/register">Register</a></li>
+            {{! guest }}
+            <li><a href="/auth/login">Login</a></li>
+            <li><a href="/auth/register">Register</a></li>
           {{/if}}
         </ul>
       </nav>
     </header>
+    {{#if error}}
+      <div>
+        <div class="errorContainer">
+          <p>{{error}}</p>
+        </div>
+      </div>
+    {{/if}}
 
-   
-        {{{body}}}
-    
+    {{{body}}}
 
     <footer>
       <p>Back-End 2023</p>
