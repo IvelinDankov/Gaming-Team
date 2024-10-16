@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getErrorMsg } from "../utils/getErrorMsg.js";
 import gameService from "../services/gameService.js";
+import { isAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
@@ -8,7 +9,7 @@ const router = Router();
 ####### CREATE ###
 ###################*/
 
-router.get("/create", (req, res) => {
+router.get("/create", isAuth, (req, res) => {
   const gamePlatform = getPlatformType({});
   res.render("games/create", {
     title: "Create Page - Gaming Team",
@@ -16,7 +17,7 @@ router.get("/create", (req, res) => {
   });
 });
 
-router.post("/create", async (req, res) => {
+router.post("/create", isAuth, async (req, res) => {
   const gameData = req.body;
   const ownerId = req.user._id;
 
@@ -65,18 +66,31 @@ router.get("/:gameId/details", async (req, res) => {
 ####### EDIT ###
 ###################*/
 
-router.get("/:gameId/edit", async (req, res) => {
+router.get("/:gameId/edit", isAuth, async (req, res) => {
   const gameId = req.params.gameId;
+  const userId = req.user._id;
   const gameData = req.body;
+
+  const isOwner = isGameOwner(gameId, userId);
+
+  if (!isOwner) {
+    res.redirect("404");
+  }
 
   const gamePlatform = getPlatformType({});
   const game = await gameService.getOne(gameId).lean();
   res.render("games/edit", { game, platform: gamePlatform });
 });
 
-router.post("/:gameId/edit", async (req, res) => {
+router.post("/:gameId/edit", isAuth, async (req, res) => {
   const gameId = req.params.gameId;
   const gameData = req.body;
+
+  const isOwner = game.owner.toString() == req.user._id;
+
+  if (!isOwner) {
+    return res.redirect("/404");
+  }
 
   try {
     await gameService.edit(gameId, gameData);
@@ -96,8 +110,15 @@ router.post("/:gameId/edit", async (req, res) => {
 ####### DELETE ###
 ###################*/
 
-router.get("/:gameId/delete", async (req, res) => {
+router.get("/:gameId/delete", isAuth, async (req, res) => {
   const gameId = req.params.gameId;
+  const userId = req.user._id;
+
+  const isOwner = isGameOwner(gameId, userId);
+
+  if (!isOwner) {
+    return res.redirect("/404");
+  }
 
   await gameService.remove(gameId);
 
@@ -108,10 +129,16 @@ router.get("/:gameId/delete", async (req, res) => {
 ####### BUY ###
 ###################*/
 
-router.get("/:gameId/buy", async (req, res) => {
+router.get("/:gameId/buy", isAuth, async (req, res) => {
   const gameId = req.params.gameId;
 
   const userId = req.user._id;
+
+  const isOwner = isGameOwner(gameId, userId);
+
+  if (isOwner) {
+    return res.redirect("/404");
+  }
 
   try {
     await gameService.buy(gameId, userId);
@@ -142,6 +169,11 @@ router.get("/search", async (req, res) => {
 /*#######################
 ####### HELP FUNCTION ###
 #########################*/
+async function isGameOwner(gameId, userId) {
+  const game = await gameService.getOne(gameId);
+  const isOwner = game.owner.toString() === userId;
+  return isOwner;
+}
 
 function getPlatformType({ gameData }) {
   const platformType = ["PC", "Nintendo", "PS4", "PS5", "XBOX"];

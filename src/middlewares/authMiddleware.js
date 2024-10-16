@@ -23,3 +23,22 @@ export const authMiddleware = (req, res, next) => {
     console.log(err.message);
   }
 };
+
+
+export const isAuth = (req, res, next) => {
+  if (!req.user) {
+        res.redirect('/auth/login')
+  }
+  
+  next();
+}
+
+export const isGuest = (req, res, next) => {
+  if (req.user) {
+    return res.redirect('/404');
+
+
+  }
+
+  next();
+}
