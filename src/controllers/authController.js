@@ -9,7 +9,7 @@ const router = Router();
 ************************/
 // GET
 router.get("/register", (req, res) => {
-  res.render("auth/register", {title: "Register Page"});
+  res.render("auth/register", { title: "Register Page" });
 });
 
 // POST
@@ -18,16 +18,17 @@ router.post("/register", async (req, res) => {
 
   try {
     await authService.register(username, email, password, rePass);
-  
+
     res.redirect("/");
-    
   } catch (err) {
     const error = getErrorMsg(err);
-    res.render("auth/register", {title: "Register Page", username, email, error});
+    res.render("auth/register", {
+      title: "Register Page",
+      username,
+      email,
+      error,
+    });
   }
-
-  
-
 });
 
 /*##################
@@ -37,7 +38,7 @@ router.post("/register", async (req, res) => {
 // GET
 
 router.get("/login", (req, res) => {
-  res.render("auth/login", {title: "Login Page"});
+  res.render("auth/login", { title: "Login Page" });
 });
 
 // POST
@@ -46,18 +47,17 @@ router.post("/login", async (req, res) => {
 
   try {
     const token = await authService.login(email, password);
-  
+
     res.cookie("auth", token);
-  
+
     res.redirect("/");
-    
   } catch (err) {
-     const error = getErrorMsg(err);
-     res.render("auth/login", {
-       title: "Login Page",
-       email,
-       error,
-     });
+    const error = getErrorMsg(err);
+    res.render("auth/login", {
+      title: "Login Page",
+      email,
+      error,
+    });
   }
 });
 

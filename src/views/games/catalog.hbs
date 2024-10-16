@@ -4,23 +4,14 @@
     <div class="offer-list">
 
       {{#each games}}
-      <div class="game">
-        <div class="game-img">
-          <img src="{{image}}" />
-        </div>
-        <div class="game-info">
-          <h1>{{name}}</h1>
-          <p><span>Platform: </span>{{platform}}</p>
-          <p><span>Genre: </span>{{genre}}</p>
-          <p><span>Price: </span>$23</p>
-        </div>
+        {{>game}}
 
-        <a href="/games/{{_id}}/details" class="btn-details">Details</a>
-      </div>
+      {{else}}
+        <div class="no-offer">
+          <p>There are no game offers found!</p>
+        </div>
       {{/each}}
     </div>
-    <!-- <div class="no-offer">
-                <p>There are no game offers found!</p>
-            </div> -->
+    <!--  -->
   </section>
 </main>

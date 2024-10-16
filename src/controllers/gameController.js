@@ -9,7 +9,6 @@ const router = Router();
 ###################*/
 
 router.get("/create", (req, res) => {
-  const gameData = req.body;
   const gamePlatform = getPlatformType({});
   res.render("games/create", {
     title: "Create Page - Gaming Team",
@@ -20,8 +19,6 @@ router.get("/create", (req, res) => {
 router.post("/create", async (req, res) => {
   const gameData = req.body;
   const ownerId = req.user._id;
-
-  console.log(gameData);
 
   try {
     await gameService.create(gameData, ownerId);
@@ -43,10 +40,108 @@ router.post("/create", async (req, res) => {
 ###################*/
 
 router.get("/catalog", async (req, res) => {
-  const games = await gameService.getAll().lean()
+  const games = await gameService.getAll().lean();
 
-  res.render("games/catalog", {games});
+  res.render("games/catalog", { games });
 });
+
+/*##################
+####### DETAILS ###
+###################*/
+
+router.get("/:gameId/details", async (req, res) => {
+  const gameId = req.params.gameId;
+  const game = await gameService.getOne(gameId).lean();
+  // const userId = req.user._id;
+
+  const isOwner = req.user?._id == game.owner;
+
+  const bought = game.boughtBy.some((userId) => userId == req.user?._id);
+
+  res.render(`games/details`, { title: "Details Page", game, isOwner, bought });
+});
+
+/*##################
+####### EDIT ###
+###################*/
+
+router.get("/:gameId/edit", async (req, res) => {
+  const gameId = req.params.gameId;
+  const gameData = req.body;
+
+  const gamePlatform = getPlatformType({});
+  const game = await gameService.getOne(gameId).lean();
+  res.render("games/edit", { game, platform: gamePlatform });
+});
+
+router.post("/:gameId/edit", async (req, res) => {
+  const gameId = req.params.gameId;
+  const gameData = req.body;
+
+  try {
+    await gameService.edit(gameId, gameData);
+    res.redirect(`/games/${gameId}/details`);
+  } catch (err) {
+    const error = getErrorMsg(err);
+    res.render("games/edit", {
+      title: "Edit Page",
+      game,
+      platform: getPlatform,
+      error,
+    });
+  }
+});
+
+/*##################
+####### DELETE ###
+###################*/
+
+router.get("/:gameId/delete", async (req, res) => {
+  const gameId = req.params.gameId;
+
+  await gameService.remove(gameId);
+
+  res.redirect("/games/catalog");
+});
+
+/*##################
+####### BUY ###
+###################*/
+
+router.get("/:gameId/buy", async (req, res) => {
+  const gameId = req.params.gameId;
+
+  const userId = req.user._id;
+
+  try {
+    await gameService.buy(gameId, userId);
+
+    res.redirect(`/games/${gameId}/details`);
+  } catch (err) {
+    console.log(er);
+  }
+});
+
+/*##################
+####### SEARCH ###
+###################*/
+router.get("/search", async (req, res) => {
+  const gamePlatform = getPlatformType({});
+  const filter = req.query;
+
+  const games = await gameService.getAll(filter).lean();
+
+  res.render("games/search", {
+    title: "Search - Gaming Team",
+    platform: gamePlatform,
+    games,
+    filter,
+  });
+});
+
+/*#######################
+####### HELP FUNCTION ###
+#########################*/
 
 function getPlatformType({ gameData }) {
   const platformType = ["PC", "Nintendo", "PS4", "PS5", "XBOX"];
